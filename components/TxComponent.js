@@ -11,20 +11,22 @@ export default function TxComponent() {
 
     const [selectedAccount, setSelectedAccount] = useState(null);
     const [accounts, setAccounts] = useState([]);
-    // returns an array of all the injected sources
-    // (this needs to be called first, before other requests)
-    useEffect(() => {
-        async function inject() {
-            if (typeof window !== "undefined") {
-                const allInjected = await web3Enable('my cool dapp');
+    const [connected, setConnected] = useState(false)
+
+    const connect = async () => {
+        if (typeof window !== "undefined") {
+            try {
+                const allInjected = await web3Enable('PostThread');
                 console.log(allInjected);
                 const allAccounts = await web3Accounts();
                 console.log(allAccounts);
                 setAccounts(allAccounts);
+                setConnected(true);
+            } catch (e) {
+                console.log(e);
             }
         }
-        inject();
-    }, [])
+    }
 
     const signMessage = async () => {
         // returns an array of { address, meta: { name, source } }
@@ -56,15 +58,17 @@ export default function TxComponent() {
 
     return (
         <div className={styles.container}>
-            <select
-                onChange={(e) => {
-                    setSelectedAccount(accounts[e.target.value]);
-                }}>
-                {accounts.map((account, index) => {
-                    return <option key={index} value={index}>{account.meta.name}</option>
-                })
-                }
-            </select>
+            {connected ?
+                <select
+                    onChange={(e) => {
+                        setSelectedAccount(accounts[e.target.value]);
+                    }}>
+                    {accounts.map((account, index) => {
+                        return <option key={index} value={index}>{account.meta.name}</option>
+                    })
+                    }
+                </select> : <button className={styles.button} onClick={connect}>Connect</button>
+            }
             {selectedAccount ? <button className={styles.button} onClick={signMessage}>Sign</button> : <></>}
         </div>
     )
